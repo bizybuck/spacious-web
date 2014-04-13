@@ -1,0 +1,621 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+
+</h:head>
+
+<h:body>
+	<h4 align="right">
+		<h:graphicImage value="/images/epmpws_logo.png" />
+	</h4>
+	<h:form>
+		<p:tabView id="tabView">
+			<p:tab id="enterDataTab" title="Enter Inventory Data">
+				<!-- <h:form id="entryOptionsForm"> -->
+				<h:panelGroup id="entryPanelGroup">
+					<p:outputPanel id="enterDataPanel">
+						<p:selectOneRadio id="entryOptions"
+							value="#{mainController.CSVEntrySelected}" layout="custom">
+							<f:selectItem itemLabel="CSV Files" itemValue="true" />
+							<f:selectItem itemLabel="Individual" itemValue="false" />
+							<f:ajax listener="mainController.changeCSVEntrySelected"
+								render="@all" />
+						</p:selectOneRadio>
+						<h:panelGrid id="entrySelectionPanelGrid" columns="4">
+							<p:radioButton id="csvFilesEntry" for="entryOptions"
+								itemIndex="0" />
+							<h:outputLabel for="csvFilesEntry" value="Enter CSV Files" />
+
+							<p:radioButton id="individualEntry" for="entryOptions"
+								itemIndex="1" />
+							<h:outputLabel for="individualEntry"
+								value="Enter Individual Data" />
+						</h:panelGrid>
+					</p:outputPanel>
+					<p:outputPanel id="individualEntryPanel"
+						rendered="#{!mainController.CSVEntrySelected}">
+						<p:panelGrid id="individualEntryPanelGrid">
+							<p:row>
+								<p:column colspan="2">
+									<p:outputLabel for="entryItemNumber" value="Item Number:" />
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column colspan="2">
+									<p:inputText id="entryItemNumber"
+										value="#{mainController.entryItem.number}" label="ItemNumber" />
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column colspan="2">
+									<p:outputLabel for="entryItemDescription"
+										value="Item Description:" />
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column colspan="2">
+									<p:inputText id="entryItemDescription"
+										value="#{mainController.entryItem.desc}"
+										label="Itemdescription" size="55">
+									</p:inputText>
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column>
+									<p:outputLabel for="entryItemStatus" value="Item Status:" />
+								</p:column>
+								<p:column>
+									<p:outputLabel for="entryItemDate" value="Date:" />
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column>
+									<p:selectOneMenu id="entryItemStatus"
+										value="#{mainController.entryItem.status}">
+										<f:selectItems value="#{mainController.statuses}" />
+										<p:ajax event="change"
+											update="entryItemDayStartQuantity,entryItemDayReceivedQuantity" />
+									</p:selectOneMenu>
+								</p:column>
+								<p:column>
+									<p:calendar id="entryItemDate" showOn="button"
+										readOnlyInput="true" type="date"
+										value="#{mainController.entryItem.entryDate}" />
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column>
+									<p:outputLabel for="entryItemDayStartQuantity"
+										value="Day Start Quantity:" required="true" />
+								</p:column>
+								<p:column>
+									<p:outputLabel for="entryItemDayReceivedQuantity"
+										value="Day Incoming Stock:" required="true" />
+								</p:column>
+							</p:row>
+							<p:row id="entryItemDayCountRow">
+								<p:column>
+									<p:inputText id="entryItemDayStartQuantity"
+										value="#{mainController.entryItem.startQuantity}"
+										type="number" disabled="#{!mainController.active}" />
+								</p:column>
+								<p:column>
+									<p:inputText id="entryItemDayReceivedQuantity"
+										value="#{mainController.entryItem.receivedQuantity}"
+										type="number" disabled="#{!mainController.active}" />
+								</p:column>
+							</p:row>
+						</p:panelGrid>
+						<p:commandButton value="Submit" update="individualEntryPanelGrid"
+							action="#{mainController.saveEntryItem}"
+							process="@this,entryItemNumber,entryItemDescription,entryItemStatus,
+										entryItemDate,entryItemDayStartQuantity,entryItemDayReceivedQuantity" />
+					</p:outputPanel>
+				</h:panelGroup>
+			</p:tab>
+			<p:tab id="viewDataTab" title="View Inventory Data">
+				<!-- <h:form id="viewInventoryDataForm"> -->
+				<h:panelGroup id="viewInventoryDataPanelGroup">
+					<p:outputPanel id="searchInventoryPanel">
+						<p:panelGrid id="searchInventoryPanelGrid">
+							<p:row>
+								<p:column>
+									<p:outputLabel id="searchItemNumberLabel"
+										for="searchItemNumber" value="Item Number:" />
+								</p:column>
+								<p:column colspan="3">
+									<p:outputLabel id="searchItemDescLabel"
+										for="searchItemDescription" value="Item Description:" />
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column>
+									<p:autoComplete id="searchItemNumber"
+										value="#{mainController.searchItem.number}"
+										completeMethod="#{mainController.completeSearchItemNumber}"
+										placeholder="Start Typing..." forceSelection="true"
+										dropdown="true" maxResults="13" minQueryLength="4">
+										<p:ajax event="blur"
+											listener="#{mainController.changeSearchItemNumber}"
+											update="searchItemDescription" />
+									</p:autoComplete>
+								</p:column>
+								<p:column colspan="3">
+									<p:inputText id="searchItemDescription" readonly="true"
+										value="#{mainController.searchItem.desc}" size="55" />
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column>
+									<p:outputLabel for="searchStartDate" value="Start Date" />
+								</p:column>
+								<p:column>
+									<p:outputLabel for="searchEndDate" value="End Date" />
+								</p:column>
+								<p:column>
+									<p:outputLabel for="searchItemStatus" value="Item Status" />
+								</p:column>
+							</p:row>
+							<p:row colspan="3">
+								<p:column>
+									<p:calendar id="searchStartDate"
+										value="#{mainController.searchItem.startDate}" showOn="button"
+										readOnlyInput="true" type="date" />
+								</p:column>
+								<p:column>
+									<p:calendar id="searchEndDate"
+										value="#{mainController.searchItem.endDate}" showOn="button"
+										type="date" />
+								</p:column>
+								<p:column>
+									<h:selectOneMenu id="searchItemStatus"
+										value="#{mainController.searchItem.status}">
+										<f:selectItem itemLabel="Select One" itemValue="" />
+										<f:selectItems value="#{mainController.statuses}" var="status"
+											itemLabel="#{status}" itemValue="#{status}" />
+									</h:selectOneMenu>
+								</p:column>
+							</p:row>
+						</p:panelGrid>
+						<p:commandButton value="Submit"
+							action="#{mainController.submitSearchItem}"
+							process="@this,searchItemNumber,searchStartDate,
+							searchEndDate,searchItemStatus"
+							update="searchResultsPanel" />
+					</p:outputPanel>
+					<p:outputPanel id="searchResultsPanel">
+						<p:dataTable id="searchResults" var="item"
+							value="#{mainController.viewInventoryData}"
+							rendered="#{mainController.renderSearchResultsTable}"
+							scrollable="true" resizableColumns="true" rows="20"
+							scrollHeight="335" liveScroll="true" scrollRows="10">
+							<p:column width="10%">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Item&lt;br/&gt;Number" />
+								</f:facet>
+								<h:outputText value="#{item.number}" />
+							</p:column>
+							<p:column>
+								<f:facet name="header">
+									<h:outputText escape="false" value="Description" />
+								</f:facet>
+								<h:outputText value="#{item.desc}" />
+							</p:column>
+							<p:column width="10%">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Start&lt;br/&gt;Quantity" />
+								</f:facet>
+								<h:outputText value="#{item.startQuantity}" />
+							</p:column>
+							<p:column width="10%">
+								<f:facet name="header">
+									<h:outputText escape="false"
+										value="Quantity&lt;br/&gt;Received" />
+								</f:facet>
+								<h:outputText value="#{item.receivedQuantity}" />
+							</p:column>
+							<p:column width="10%">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Status" />
+								</f:facet>
+								<h:outputText value="#{item.status}" />
+							</p:column>
+							<p:column width="22%">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Date" />
+								</f:facet>
+								<h:outputText value="#{item.entryDate}" />
+							</p:column>
+						</p:dataTable>
+						<p:separator />
+						<h:panelGrid columns="2"
+							rendered="#{mainController.renderSearchResultsTable}">
+							<p:panel header="Export All Data">
+								<h:commandLink>
+									<p:graphicImage value="/images/excel2.png" />
+									<p:dataExporter type="xls" target="searchResults"
+										fileName="#{mainController.searchItem.number}.inventoryHistory" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/pdf2.png" />
+									<p:dataExporter type="pdf" target="searchResults"
+										fileName="#{mainController.searchItem.number}.inventoryHistory" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/csv2.png" />
+									<p:dataExporter type="csv" target="searchResults"
+										fileName="#{mainController.searchItem.number}.inventoryHistory" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/xml2.png" />
+									<p:dataExporter type="xml" target="searchResults"
+										fileName="#{mainController.searchItem.number}.inventoryHistory" />
+								</h:commandLink>
+							</p:panel>
+
+							<p:panel header="Export Page Data">
+								<h:commandLink>
+									<p:graphicImage value="/images/excel2.png" />
+									<p:dataExporter type="xls" target="searchResults"
+										fileName="#{mainController.searchItem.number}.inventoryHistory"
+										pageOnly="true" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/pdf2.png" />
+									<p:dataExporter type="pdf" target="searchResults"
+										fileName="#{mainController.searchItem.number}.inventoryHistory"
+										pageOnly="true" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/csv2.png" />
+									<p:dataExporter type="csv" target="searchResults"
+										fileName="#{mainController.searchItem.number}.inventoryHistory"
+										pageOnly="true" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/xml2.png" />
+									<p:dataExporter type="xml" target="searchResults"
+										fileName="#{mainController.searchItem.number}.inventoryHistory"
+										pageOnly="true" />
+								</h:commandLink>
+							</p:panel>
+						</h:panelGrid>
+					</p:outputPanel>
+				</h:panelGroup>
+			</p:tab>
+			<p:tab id="forecastTab" title="Create Forecast">
+				<h:panelGroup id="viewForecastPanelGroup">
+					<p:outputPanel id="searchForecastPanel">
+						<p:panelGrid id="searchForecastPanelGrid">
+							<p:row>
+								<p:column>
+									<p:outputLabel id="forecastItemNumberLabel"
+										for="forecastItemNumber" value="Item Number:" />
+								</p:column>
+								<p:column colspan="3">
+									<p:outputLabel id="forecastItemDescLabel"
+										for="forecastItemDescription" value="Item Description:" />
+								</p:column>
+								<p:column>
+									<p:outputLabel id="forecastItemRangeLabel"
+										for="forecastItemRange" value="Forecast Range:" />
+								</p:column>
+							</p:row>
+							<p:row>
+								<p:column>
+									<p:autoComplete id="forecastItemNumber"
+										value="#{mainController.forecastSearchItem.number}"
+										completeMethod="#{mainController.completeSearchItemNumber}"
+										forceSelection="true" dropdown="true" maxResults="13"
+										minQueryLength="4">
+										<p:ajax event="blur"
+											listener="#{mainController.changeForecastSearchItemNumber}"
+											update="forecastItemDescription" />
+									</p:autoComplete>
+								</p:column>
+								<p:column colspan="3">
+									<p:autoComplete id="forecastItemDescription"
+										value="#{mainController.forecastSearchItem.desc}"
+										completeMethod="#{mainController.completeForecastItemDesc}"
+										forceSelection="true" size="55">
+										<c:if test="#{mainController.searchItemNumberEmpty}">
+											<p:ajax event="blur"
+												listener="#{mainController.changeForecastItemDesc}"
+												update="forecastItemNumber" />
+										</c:if>
+									</p:autoComplete>
+								</p:column>
+								<p:column>
+									<h:selectOneMenu id="forecastItemRange" required="true"
+										value="#{mainController.forecastSearchItem.range}">
+										<f:selectItem itemLabel="Select One" itemValue="" />
+										<f:selectItems value="#{mainController.ranges}" var="range"
+											itemLabel="#{range} Months" itemValue="#{range}" />
+									</h:selectOneMenu>
+								</p:column>
+							</p:row>
+						</p:panelGrid>
+						<p:commandButton value="Submit"
+							action="#{mainController.submitForecastItem}"
+							process="@this,forecastItemRange,forecastItemNumber"
+							update="forecastResultsPanel" />
+					</p:outputPanel>
+					<p:separator />
+					<p:outputPanel id="forecastResultsPanel">
+						<p:panel id="toggleExtraForecastColumnsPanel"
+							header="Select Additional Columns" style="width:1125px">
+							<h:outputText value="Description " />
+							<p:selectBooleanCheckbox
+								value="#{mainController.renderForecastItemDescription}">
+								<f:ajax
+									listener="mainController.changeRenderForecastItemDescription"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="Deseasonalized Demand " />
+							<p:selectBooleanCheckbox
+								value="#{mainController.renderDeseasonalizedDemand}">
+								<f:ajax
+									listener="mainController.changeRenderDeseasonalizedDemand"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="Level " />
+							<p:selectBooleanCheckbox value="#{mainController.renderLevel}">
+								<f:ajax listener="mainController.changeRenderLevel"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="Trend " />
+							<p:selectBooleanCheckbox value="#{mainController.renderTrend}">
+								<f:ajax listener="mainController.changeRenderTrend"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="Seasonal Factor " />
+							<p:selectBooleanCheckbox
+								value="#{mainController.renderSeasonalFactor}">
+								<f:ajax listener="mainController.changeRenderSeasonalFactor"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="Forecast Error " />
+							<p:selectBooleanCheckbox
+								value="#{mainController.renderForecastError}">
+								<f:ajax listener="mainController.changeRenderForecastError"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="% Error " />
+							<p:selectBooleanCheckbox
+								value="#{mainController.renderPercentageError}">
+								<f:ajax listener="mainController.changeRenderPercentageError"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="MAD " />
+							<p:selectBooleanCheckbox value="#{mainController.renderMAD}">
+								<f:ajax listener="mainController.changeRenderMAD"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="MAPE " />
+							<p:selectBooleanCheckbox value="#{mainController.renderMAPE}">
+								<f:ajax listener="mainController.changeRenderMAPE"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="Tracking Signal " />
+							<p:selectBooleanCheckbox
+								value="#{mainController.renderTrackingSignal}">
+								<f:ajax listener="mainController.changeRenderTrackingSignal"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+							<p:spacer width="10" />
+
+							<h:outputText value="Bias " />
+							<p:selectBooleanCheckbox value="#{mainController.renderBias}">
+								<f:ajax listener="mainController.changeRenderBias"
+									render="forecastResultsPanel" />
+							</p:selectBooleanCheckbox>
+						</p:panel>
+						<!-- <p:dataTable id="forecastResults" var="period"
+							value="#{mainController.viewForecastItem.forecastPeriods}"
+							rendered="#{mainController.renderForecastResultsTable}"
+							scrollable="true" resizableColumns="true" paginator="true"
+							scrollHeight="300"
+							rows="${mainController.forecastSearchItem.range * 2}"
+							paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+							rowsPerPageTemplate="${mainController.forecastSearchItem.range * 2},
+													${mainController.forecastSearchItem.range * 4},
+													${mainController.forecastSearchItem.range * 6}"> -->
+						<p:dataTable id="forecastResults" var="period"
+							value="#{mainController.viewForecastItem.forecastPeriods}"
+							rendered="#{mainController.renderForecastResultsTable}"
+							scrollable="true" resizableColumns="true" scrollHeight="290"
+							liveScroll="true"
+							scrollRows="${mainController.forecastSearchItem.range * 2}"
+							rows="${mainController.forecastSearchItem.range * 2}">
+							<p:column width="10%">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Item&lt;br/&gt;Number" />
+								</f:facet>
+								<h:outputText value="#{mainController.viewForecastItem.number}" />
+							</p:column>
+							<p:column
+								rendered="#{mainController.renderForecastItemDescription}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Description" />
+								</f:facet>
+								<h:outputText value="#{mainController.viewForecastItem.desc}" />
+							</p:column>
+							<p:column width="10%">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Month" />
+								</f:facet>
+								<h:outputText value="#{period.monthYear}" />
+							</p:column>
+							<p:column width="10%">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Actual&lt;br/&gt;Demand" />
+								</f:facet>
+								<h:outputText value="#{period.actualDemand}" />
+							</p:column>
+							<p:column width="10%"
+								rendered="#{mainController.renderDeseasonalizedDemand}">
+								<f:facet name="header">
+									<h:outputText escape="false"
+										value="Deseasonalized&lt;br/&gt;Demand" />
+								</f:facet>
+								<h:outputText value="#{period.deseasonalizedDemand}" />
+							</p:column>
+							<p:column width="10%" rendered="#{mainController.renderLevel}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Level" />
+								</f:facet>
+								<h:outputText value="#{period.level}" />
+							</p:column>
+							<p:column width="10%" rendered="#{mainController.renderTrend}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Trend" />
+								</f:facet>
+								<h:outputText value="#{period.trend}" />
+							</p:column>
+							<p:column width="10%"
+								rendered="#{mainController.renderSeasonalFactor}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Seasonal&lt;br/&gt;Factor" />
+								</f:facet>
+								<h:outputText value="#{period.seasonalFactor}" />
+							</p:column>
+							<p:column width="10%">
+								<f:facet name="header">
+									<h:outputText escape="false"
+										value="Forecasted&lt;br/&gt;Demand" />
+								</f:facet>
+								<h:outputText value="#{period.forecast}" />
+							</p:column>
+							<p:column width="10%"
+								rendered="#{mainController.renderForecastError}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Forecast&lt;br/&gt;Error" />
+								</f:facet>
+								<h:outputText value="#{period.error}" />
+							</p:column>
+							<p:column width="10%"
+								rendered="#{mainController.renderPercentageError}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="% Error" />
+								</f:facet>
+								<h:outputText value="#{period.percentageError}" />
+							</p:column>
+							<p:column width="10%" rendered="#{mainController.renderMAD}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="MAD" />
+								</f:facet>
+								<h:outputText value="#{period.meanAbsoluteDeviation}" />
+							</p:column>
+							<p:column width="10%" rendered="#{mainController.renderMAPE}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="MAPE" />
+								</f:facet>
+								<h:outputText value="#{period.meanAbsolutePercentageError}" />
+							</p:column>
+							<p:column width="10%"
+								rendered="#{mainController.renderTrackingSignal}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Tracking&lt;br/&gt;Signal" />
+								</f:facet>
+								<h:outputText value="#{period.trackingSignal}" />
+							</p:column>
+							<p:column width="10%" rendered="#{mainController.renderBias}">
+								<f:facet name="header">
+									<h:outputText escape="false" value="Bias" />
+								</f:facet>
+								<h:outputText value="#{period.bias}" />
+							</p:column>
+						</p:dataTable>
+						<p:separator />
+						<h:panelGrid columns="2"
+							rendered="#{mainController.renderForecastResultsTable}">
+							<p:panel header="Export All Data">
+								<h:commandLink>
+									<p:graphicImage value="/images/excel2.png" />
+									<p:dataExporter type="xls" target="forecastResults"
+										fileName="#{mainController.forecastSearchItem.number}.forecastResults.#{mainController.todaysDate}" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/pdf2.png" />
+									<p:dataExporter type="pdf" target="forecastResults"
+										fileName="#{mainController.forecastSearchItem.number}.forecastResults.#{mainController.todaysDate}" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/csv2.png" />
+									<p:dataExporter type="csv" target="forecastResults"
+										fileName="#{mainController.forecastSearchItem.number}.forecastResults.#{mainController.todaysDate}" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/xml2.png" />
+									<p:dataExporter type="xml" target="forecastResults"
+										fileName="#{mainController.forecastSearchItem.number}.forecastResults.#{mainController.todaysDate}" />
+								</h:commandLink>
+							</p:panel>
+
+							<p:panel header="Export Page Data">
+								<h:commandLink>
+									<p:graphicImage value="/images/excel2.png" />
+									<p:dataExporter type="xls" target="forecastResults"
+										fileName="#{mainController.forecastSearchItem.number}.forecastResults.#{mainController.todaysDate}"
+										pageOnly="true" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/pdf2.png" />
+									<p:dataExporter type="pdf" target="forecastResults"
+										fileName="#{mainController.forecastSearchItem.number}.forecastResults.#{mainController.todaysDate}"
+										pageOnly="true" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/csv2.png" />
+									<p:dataExporter type="csv" target="forecastResults"
+										fileName="#{mainController.forecastSearchItem.number}.forecastResults.#{mainController.todaysDate}"
+										pageOnly="true" />
+								</h:commandLink>
+
+								<h:commandLink>
+									<p:graphicImage value="/images/xml2.png" />
+									<p:dataExporter type="xml" target="forecastResults"
+										fileName="#{mainController.forecastSearchItem.number}.forecastResults.#{mainController.todaysDate}"
+										pageOnly="true" />
+								</h:commandLink>
+							</p:panel>
+						</h:panelGrid>
+					</p:outputPanel>
+				</h:panelGroup>
+			</p:tab>
+		</p:tabView>
+	</h:form>
+</h:body>
+</html>
